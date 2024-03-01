@@ -1,0 +1,116 @@
+{
+  "consumes": [
+    "application/json",
+    "application/x-www-form-urlencoded",
+    "multipart/form-data"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "Документация Golibrary API.",
+    "title": "Golibrary API.",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "paths": {
+    "/api/login": {
+      "post": {
+        "description": "Авторизация пользователя",
+        "tags": [
+          "auth"
+        ],
+        "operationId": "LoginRequest",
+        "parameters": [
+          {
+            "example": "{\"name\":\"tim\",\"password\":\"123\"}",
+            "description": "Авторизация",
+            "name": "Authorization",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "LoginResponse",
+            "schema": {
+              "$ref": "#/definitions/LoginResponse"
+            }
+          }
+        }
+      }
+    },
+    "/api/register": {
+      "post": {
+        "description": "Регистрация нового пользователя",
+        "tags": [
+          "auth"
+        ],
+        "operationId": "RegisterRequest",
+        "parameters": [
+          {
+            "example": "{\"name\":\"tim\",\"password\":\"123\"}",
+            "description": "Регистрация",
+            "name": "Registration",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RegisterResponse",
+            "schema": {
+              "$ref": "#/definitions/RegisterResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "LoginResponse": {
+      "type": "object",
+      "properties": {
+        "Token": {
+          "description": "in:body\nToken содержит информацию о токене",
+          "type": "string"
+        }
+      },
+      "x-go-package": "golibrary/docs"
+    },
+    "RegisterResponse": {
+      "type": "object",
+      "properties": {
+        "Token": {
+          "description": "in:body\nToken содержит информацию о регистрации",
+          "type": "string"
+        }
+      },
+      "x-go-package": "golibrary/docs"
+    }
+  },
+  "securityDefinitions": {
+    "api_key": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "api_key": []
+    }
+  ]
+}
