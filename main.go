@@ -12,9 +12,10 @@ import (
 	"time"
 
 	"golibrary/config"
+	"golibrary/internal/controller"
 	"golibrary/internal/db"
 	"golibrary/internal/logger"
-	"golibrary/internal/responder"
+	"golibrary/internal/service"
 
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
@@ -28,21 +29,20 @@ func main() {
 	// Инициализация конфигурации приложения с логгером
 	conf.Init(logger)
 
-
-	// Создание респондера
-	_ := responder.NewResponder(logger)
-
 	// Инициализация БД
 	_, err := db.Init(conf.DB, logger)
 	if err != nil {
 		logger.Fatal("error init db", zap.Error(err))
 	}
 
+	// Создание репозиториев
+	// TODO: добавить репы
+
 	// Создание сервисов
-	// ...
+	services := service.NewServices(logger)
 
 	// Создание контроллеров
-	// ...
+	controllers := controller.NewControllers(services)
 
 	r := chi.NewRouter()
 
@@ -53,11 +53,16 @@ func main() {
 
 	// маршруты library сервиса
 	r.Group(func(r chi.Router) {
-		libController := controllers.Library
-		r.Get("/library/{bookId}/{userId}", libController.BookTake)
-		r.Post("/library/{bookId}/{userId}", libController.BookReturn)
-		r.Get("/library/popular-authors", libController.AuthorsTop)
-		r.Get("/library/authors", libController.AuthorsList)
+		bookController := controllers.Book
+		r.Put("/library/{bookId}/{userId}", bookController.Take)
+		r.Put("/library/{bookId}/{userId}", bookController.Return)
+		r.Get("/library/books", bookController.List)
+		r.Post("/library/book", bookController.Add)
+
+		authorController := controllers.Author
+		r.Get("/library/popular-authors", authorController.Top)
+		r.Get("/library/authors", authorController.List)
+		r.Post("/library/author", authorController.Add)
 	})
 
 	server := &http.Server{

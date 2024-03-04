@@ -14,5 +14,6 @@ require (
 	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/go-chi/chi v1.5.5
 	github.com/jmoiron/sqlx v1.3.5
+	github.com/lib/pq v1.10.9
 	go.uber.org/multierr v1.10.0 // indirect
 )
