@@ -28,7 +28,6 @@ func CreateBooks(db *sqlx.DB) error {
 	query := `CREATE TABLE public.books (
 		id serial PRIMARY KEY,
 		title VARCHAR NOT NULL,
-		available BOOLEAN DEFAULT true,
 		user_id INT,
 		author_id INT NOT NULL,
 		CONSTRAINT fk_books_1 FOREIGN KEY (author_id) REFERENCES public.authors(id) ON DELETE CASCADE ON UPDATE CASCADE

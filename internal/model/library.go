@@ -8,10 +8,10 @@ type User struct {
 }
 
 type Author struct {
-	ID        int `json:"id"`
-	Name      string `json:"name"`
-	BirthDate string `json:"birth_date"`
-	Books     []Book `json:"books"`
+	ID        int     `json:"id"`
+	Name      string  `json:"name"`
+	BirthDate string  `json:"birth_date"`
+	Books     []*Book `json:"books"`
 }
 
 type Book struct {

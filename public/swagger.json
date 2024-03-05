@@ -20,59 +20,105 @@
   "host": "localhost:8080",
   "basePath": "/",
   "paths": {
-    "/api/login": {
-      "post": {
-        "description": "Авторизация пользователя",
+    "/library/authors": {
+      "get": {
+        "description": "Получение списка авторов",
         "tags": [
-          "auth"
+          "author"
         ],
-        "operationId": "LoginRequest",
-        "parameters": [
-          {
-            "example": "{\"name\":\"tim\",\"password\":\"123\"}",
-            "description": "Авторизация",
-            "name": "Authorization",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "operationId": "Author",
         "responses": {
           "200": {
-            "description": "LoginResponse",
+            "description": "Cписок авторов успешно получен",
             "schema": {
-              "$ref": "#/definitions/LoginResponse"
+              "$ref": "#/definitions/Author"
             }
           }
         }
       }
     },
-    "/api/register": {
-      "post": {
-        "description": "Регистрация нового пользователя",
+    "/library/return/{bookId}/{userId}": {
+      "put": {
+        "description": "Сдать книгу",
         "tags": [
-          "auth"
+          "book"
         ],
-        "operationId": "RegisterRequest",
+        "operationId": "BookReturn",
         "parameters": [
           {
-            "example": "{\"name\":\"tim\",\"password\":\"123\"}",
-            "description": "Регистрация",
-            "name": "Registration",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "BookId",
+            "name": "bookId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "UserId",
+            "name": "userId",
+            "in": "path",
+            "required": true
           }
         ],
         "responses": {
           "200": {
-            "description": "RegisterResponse",
+            "description": "Книга успешно сдана",
             "schema": {
-              "$ref": "#/definitions/RegisterResponse"
+              "$ref": "#/definitions/Book"
+            }
+          }
+        }
+      }
+    },
+    "/library/take/{bookId}/{userId}": {
+      "put": {
+        "description": "Взять книгу",
+        "tags": [
+          "book"
+        ],
+        "operationId": "BookTake",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "BookId",
+            "name": "bookId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "UserId",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Книга успешно получена",
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          }
+        }
+      }
+    },
+    "/library/users": {
+      "get": {
+        "description": "Список читателей",
+        "tags": [
+          "user"
+        ],
+        "operationId": "UsersList",
+        "responses": {
+          "200": {
+            "description": "Список читателей успешно получен",
+            "schema": {
+              "$ref": "#/definitions/User"
             }
           }
         }
@@ -80,24 +126,83 @@
     }
   },
   "definitions": {
-    "LoginResponse": {
+    "Author": {
       "type": "object",
       "properties": {
-        "Token": {
-          "description": "in:body\nToken содержит информацию о токене",
-          "type": "string"
+        "birth_date": {
+          "type": "string",
+          "x-go-name": "BirthDate"
+        },
+        "books": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Book"
+          },
+          "x-go-name": "Books"
+        },
+        "id": {
+          "description": "in:body",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
         }
       },
       "x-go-package": "golibrary/docs"
     },
-    "RegisterResponse": {
+    "Book": {
       "type": "object",
       "properties": {
-        "Token": {
-          "description": "in:body\nToken содержит информацию о регистрации",
-          "type": "string"
+        "author_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "AuthorID"
+        },
+        "available": {
+          "type": "boolean",
+          "x-go-name": "Available"
+        },
+        "id": {
+          "description": "in:body",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "title": {
+          "type": "string",
+          "x-go-name": "Title"
+        },
+        "user_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "UserID"
         }
       },
+      "x-go-name": "BookReturn",
+      "x-go-package": "golibrary/internal/model"
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "x-go-name": "Email"
+        },
+        "id": {
+          "description": "in:body",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-name": "UsersList",
       "x-go-package": "golibrary/docs"
     }
   },

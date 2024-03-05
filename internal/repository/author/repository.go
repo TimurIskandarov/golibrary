@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"golibrary/internal/model"
+	repoBook "golibrary/internal/repository/book"
 
 	"github.com/jmoiron/sqlx"
-	
+
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -27,7 +28,7 @@ type AuthorRepository struct {
 func NewAuthorRepository(db *sqlx.DB) *AuthorRepository {
 	return &AuthorRepository{db: db}
 }
-
+// +
 func (r *AuthorRepository) AuthorsList(ctx context.Context) ([]*model.Author, error) {
 	query, _, _ := sq.Select(
 		"id",
@@ -57,7 +58,12 @@ func (r *AuthorRepository) AuthorsList(ctx context.Context) ([]*model.Author, er
 			return nil, err
 		}
 
-		// уникальные авторы
+		repoBook := repoBook.NewBookRepository(r.db)
+		author.Books, err = repoBook.ListByAuthor(ctx, author.ID)
+		if err != nil {
+			return nil, err // authors, err
+		}
+
 		authors = append(authors, author)
 	}
 
@@ -118,7 +124,7 @@ func (r *AuthorRepository) AddAuthor(ctx context.Context, name, birthDate string
 		name,
 		birthDate,
 	).Suffix(
-		"RETURIN id",
+		"RETURNING id",
 	).PlaceholderFormat(sq.Dollar).ToSql()
 
 	row := r.db.QueryRowContext(ctx, query, args...)

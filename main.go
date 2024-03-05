@@ -12,9 +12,11 @@ import (
 	"time"
 
 	"golibrary/config"
+	"golibrary/docs"
 	"golibrary/internal/controller"
 	"golibrary/internal/db"
 	"golibrary/internal/logger"
+	"golibrary/internal/repository"
 	"golibrary/internal/service"
 
 	"github.com/go-chi/chi"
@@ -30,16 +32,16 @@ func main() {
 	conf.Init(logger)
 
 	// Инициализация БД
-	_, err := db.Init(conf.DB, logger)
+	dbx, err := db.Init(conf.DB, logger)
 	if err != nil {
 		logger.Fatal("error init db", zap.Error(err))
 	}
 
 	// Создание репозиториев
-	// TODO: добавить репы
+	repos := repo.NewRepositories(dbx)
 
 	// Создание сервисов
-	services := service.NewServices(logger)
+	services := service.NewServices(repos, logger)
 
 	// Создание контроллеров
 	controllers := controller.NewControllers(services)
@@ -50,12 +52,19 @@ func main() {
 		w.Write([]byte("Hello from API"))
 	})
 
+	// swagger документация
+	r.Get("/swagger", func(w http.ResponseWriter, r *http.Request) {
+		docs.SwaggerUI(w, r)
+	})
+	r.Get("/public/*", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./public/swagger.json")
+	})
 
 	// маршруты library сервиса
 	r.Group(func(r chi.Router) {
 		bookController := controllers.Book
-		r.Put("/library/{bookId}/{userId}", bookController.Take)
-		r.Put("/library/{bookId}/{userId}", bookController.Return)
+		r.Put("/library/take/{bookId}/{userId}", bookController.Take)
+		r.Put("/library/return/{bookId}/{userId}", bookController.Return)
 		r.Get("/library/books", bookController.List)
 		r.Post("/library/book", bookController.Add)
 
@@ -63,6 +72,10 @@ func main() {
 		r.Get("/library/popular-authors", authorController.Top)
 		r.Get("/library/authors", authorController.List)
 		r.Post("/library/author", authorController.Add)
+
+		userController := controllers.User
+		r.Get("/library/users", userController.List)
+		r.Post("/library/user", userController.Add)
 	})
 
 	server := &http.Server{

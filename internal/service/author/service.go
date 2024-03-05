@@ -20,8 +20,8 @@ type AuthorService struct {
 	repo   repo.AuthorerRepository
 }
 
-func NewAuthorService(logger *zap.Logger) *AuthorService {
-	return &AuthorService{logger: logger}
+func NewAuthorService(repo repo.AuthorerRepository, logger *zap.Logger) *AuthorService {
+	return &AuthorService{repo: repo, logger: logger}
 }
 
 func (as *AuthorService) AuthorsTop(ctx context.Context) ([]*model.Author, error) {

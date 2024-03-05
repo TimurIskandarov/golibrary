@@ -1,4 +1,4 @@
-package repository
+package repo
 
 import (
 	"context"
@@ -16,10 +16,11 @@ const (
 )
 
 type BookerRepository interface {
-	BookTake(ctx context.Context, userId, bookId int) error
-	BookReturn(ctx context.Context, userId, bookId int) error
+	BookTake(ctx context.Context, userId, bookId int) (*model.Book, error)
+	BookReturn(ctx context.Context, userId, bookId int) (*model.Book, error)
 	BooksList(ctx context.Context) ([]*model.Book, error)
 	BookAdd(ctx context.Context, book model.Book) error
+	ListByAuthor(ctx context.Context, authorId int) ([]*model.Book, error)
 }
 
 type BookRepository struct {
@@ -30,72 +31,92 @@ func NewBookRepository(db *sqlx.DB) *BookRepository {
 	return &BookRepository{db: db}
 }
 
-func (r *BookRepository) BookTake(ctx context.Context, userId, bookId int) error {
-	var isAvailable bool
-	query, args, _ := sq.Select("available").
+func (r *BookRepository) BookTake(ctx context.Context, userId, bookId int) (*model.Book, error) {
+	var userID *int
+	book := new(model.Book)
+	query, args, _ := sq.Select(
+			"id",
+			"title",
+			"user_id",
+			"author_id",
+		).
 		From(books).
 		Where("id=?", bookId).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	row := r.db.QueryRowContext(ctx, query, args...)
-	if err := row.Scan(&isAvailable); err != nil {
-		return err
+	if err := row.Scan(
+		&book.ID,
+		&book.Title,
+		&userID,
+		&book.AuthorID,
+	); err != nil {
+		return nil, err
 	}
 
-	if !isAvailable {
-		return errors.New("книга недоступна")
+	if userID != nil {
+		return nil, errors.New("книга недоступна")
+	} else {
+		book.UserID = userId
 	}
 
 	query, args, _ = sq.Update(books).
-		Set("available", false).
-		Set("user_id", userId).
-		Where("id = ?", bookId).
+		Set("user_id", book.UserID).
+		Where("id = ?", book.ID).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	if _, err := r.db.ExecContext(ctx, query, args...); err != nil {
-		return err
+		return nil, err // book, err
 	}
 
-	// TODO: добавить запись о взятии книги в историю
-	// ...
-
-	return nil
+	return book, nil
 }
 
-func (r *BookRepository) BookReturn(ctx context.Context, userId, bookId int) error {
-	var isAvailable bool
-	query, args, _ := sq.Select("available").
+func (r *BookRepository) BookReturn(ctx context.Context, userId, bookId int) (*model.Book, error) {
+	var userID *int
+	book := new(model.Book)
+	query, args, _ := sq.Select(
+			"id",
+			"title",
+			"user_id",
+			"author_id",
+		).
 		From(books).
 		Where("id=?", bookId).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	row := r.db.QueryRowContext(ctx, query, args...)
-	if err := row.Scan(&isAvailable); err != nil {
-		return err
+	if err := row.Scan(
+		&book.ID,
+		&book.Title,
+		&userID,
+		&book.AuthorID,
+	); err != nil {
+		return nil, err
 	}
 
-	if isAvailable {
-		return errors.New("книга уже сдана")
+	if userID == nil {
+		return nil, errors.New("книга уже сдана")
+	} else if *userID != userId {
+		return nil, errors.New("вы книгу не брали")
+	} else {
+		userID = nil
 	}
 
 	query, args, _ = sq.Update(books).
-		Set("available", true).
-		Set("user_id", nil).
+		Set("user_id", userID).
 		Where("id = ?", bookId).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	if _, err := r.db.ExecContext(ctx, query, args...); err != nil {
-		return err
+		return nil, err // book, err
 	}
 
-	// TODO: удалить запись о взятии книги из истории
-	// ...
-
-	return nil
+	return book, nil
 }
 
 func (r *BookRepository) BooksList(ctx context.Context) ([]*model.Book, error) {
@@ -175,4 +196,57 @@ func (r *BookRepository) BookAdd(ctx context.Context, book model.Book) error {
 	}
 
 	return nil
+}
+
+// +
+func (r *BookRepository) ListByAuthor(ctx context.Context, authorId int) ([]*model.Book, error) {
+	query, args, _ := sq.Select(
+		"id",
+		"title",
+		"available",
+		"user_id",
+		"author_id",
+	).From(
+		books,
+	).Where(
+		"author_id = ?", authorId,
+	).PlaceholderFormat(sq.Dollar).ToSql()
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	books := make([]*model.Book, 0)
+
+	for rows.Next() {
+		book := new(model.Book)
+		var userId *int
+
+		if err := rows.Scan(
+			&book.ID,
+			&book.Title,
+			&book.Available,
+			&userId,
+			&book.AuthorID,
+		); err != nil {
+			return nil, err
+		}
+
+		if userId == nil {
+			book.UserID = 0
+		} else {
+			book.UserID = *userId
+		}
+
+		books = append(books, book)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return books, nil
 }

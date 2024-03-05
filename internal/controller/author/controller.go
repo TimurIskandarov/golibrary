@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"golibrary/internal/model"
-	"golibrary/internal/service/author"
+	service "golibrary/internal/service/author"
 )
 
 type Authorer interface {
@@ -31,6 +31,7 @@ func (a *Author) Top(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
 	json.NewEncoder(w).Encode(authors)
 }
 
@@ -41,12 +42,13 @@ func (a *Author) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(authors)
 }
 
 func (a *Author) Add(w http.ResponseWriter, r *http.Request) {
 	var author model.Author
-	
+
 	err := json.NewDecoder(r.Body).Decode(&author)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

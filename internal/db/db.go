@@ -97,11 +97,9 @@ func addBooks(db *sqlx.DB, authorId int) error {
 		query, args, _ := sq.Insert(books).
 			Columns(
 				"title",
-				"available",
 				"author_id",
 			).Values(
 				bookTitle,
-				true,
 				authorId,
 			).Suffix(
 				"RETURNING id",
