@@ -2,7 +2,9 @@ package repo
 
 import (
 	"context"
+
 	"golibrary/internal/model"
+	repoBook "golibrary/internal/repository/book"
 
 	"github.com/jmoiron/sqlx"
 	
@@ -47,6 +49,7 @@ func (r *UserRepository) List(ctx context.Context) ([]*model.User, error) {
 
 	for rows.Next() {
 		user := new(model.User)
+		
 		if err := rows.Scan(
 			&user.ID,
 			&user.Name,
@@ -54,9 +57,17 @@ func (r *UserRepository) List(ctx context.Context) ([]*model.User, error) {
 		); err != nil {
 			return nil, err
 		}
+		
+		repoBook := repoBook.NewBookRepository(r.db)
+		user.Books, err = repoBook.ListByUser(ctx, user.ID)
+		if err != nil {
+			return nil, err // users, err
+		}
+
 		users = append(users, user)
 	}
 
+	// убеждаемся, что прошлись по всему набору строк без ошибок
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}

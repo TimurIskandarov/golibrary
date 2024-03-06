@@ -9,8 +9,8 @@ import (
 )
 
 type Repositories struct {
-	Author arepo.AuthorerRepository
-	Book   brepo.BookerRepository
+	Author arepo.Authorer
+	Book   brepo.Booker
 	User   urepo.Userer
 }
 

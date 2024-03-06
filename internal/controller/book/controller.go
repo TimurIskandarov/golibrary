@@ -27,42 +27,7 @@ func NewBook(service service.Booker) Booker {
 	}
 }
 
-// AddBook implements Booker.
-func (b *Book) Add(w http.ResponseWriter, r *http.Request) {
-	panic("unimplemented")
-}
-
-// BookReturn implements Booker.
-func (b *Book) Return(w http.ResponseWriter, r *http.Request) {
-	rawUserId := chi.URLParam(r, "userId")
-	rawBookId := chi.URLParam(r, "bookId")
-
-	userId, err := strconv.Atoi(rawUserId)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	bookId, err := strconv.Atoi(rawBookId)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	book, err := b.service.BookReturn(r.Context(), userId, bookId)
-	if err != nil {
-		if err.Error() == "книга уже сдана" {
-			http.Error(w, err.Error(), http.StatusConflict)
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(book)
-}
-
-// BookTake implements Booker.
+// Take implements Booker.
 func (b *Book) Take(w http.ResponseWriter, r *http.Request) {
 	rawUserId := chi.URLParam(r, "userId")
 	rawBookId := chi.URLParam(r, "bookId")
@@ -78,7 +43,7 @@ func (b *Book) Take(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	book, err := b.service.BookTake(r.Context(), userId, bookId)
+	book, err := b.service.Take(r.Context(), userId, bookId)
 	if err != nil {
 		if err.Error() == "книга недоступна" {
 			http.Error(w, err.Error(), http.StatusConflict)
@@ -92,7 +57,49 @@ func (b *Book) Take(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(book)
 }
 
-// ListBooks implements Booker.
+// Return implements Booker.
+func (b *Book) Return(w http.ResponseWriter, r *http.Request) {
+	rawUserId := chi.URLParam(r, "userId")
+	rawBookId := chi.URLParam(r, "bookId")
+
+	userId, err := strconv.Atoi(rawUserId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	bookId, err := strconv.Atoi(rawBookId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	book, err := b.service.Return(r.Context(), userId, bookId)
+	if err != nil {
+		if err.Error() == "книга уже сдана" {
+			http.Error(w, err.Error(), http.StatusConflict)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(book)
+}
+
+// List implements Booker.
 func (b *Book) List(w http.ResponseWriter, r *http.Request) {
+	books, err := b.service.List(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(books)
+}
+
+// Add implements Booker.
+func (b *Book) Add(w http.ResponseWriter, r *http.Request) {
 	panic("unimplemented")
 }

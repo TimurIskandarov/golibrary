@@ -15,10 +15,10 @@ const (
 	authors = "authors"
 )
 
-type AuthorerRepository interface {
-	AuthorsTop(ctx context.Context) ([]*model.Author, error)
-	AuthorsList(ctx context.Context) ([]*model.Author, error)
-	AddAuthor(ctx context.Context, name, birthDate string) error
+type Authorer interface {
+	Top(ctx context.Context) ([]*model.Author, error)
+	List(ctx context.Context) ([]*model.Author, error)
+	Add(ctx context.Context, author model.Author) error
 }
 
 type AuthorRepository struct {
@@ -28,8 +28,8 @@ type AuthorRepository struct {
 func NewAuthorRepository(db *sqlx.DB) *AuthorRepository {
 	return &AuthorRepository{db: db}
 }
-// +
-func (r *AuthorRepository) AuthorsList(ctx context.Context) ([]*model.Author, error) {
+
+func (r *AuthorRepository) List(ctx context.Context) ([]*model.Author, error) {
 	query, _, _ := sq.Select(
 		"id",
 		"name",
@@ -75,22 +75,31 @@ func (r *AuthorRepository) AuthorsList(ctx context.Context) ([]*model.Author, er
 	return authors, nil
 }
 
-func (r *AuthorRepository) AuthorsTop(ctx context.Context) ([]*model.Author, error) {
-	query, _, _ := sq.Select(
-		"id",
-		"name",
-	).From(
-		authors,
-	).PlaceholderFormat(sq.Dollar).ToSql()
+func (r *AuthorRepository) Top(ctx context.Context) ([]*model.Author, error) {
+	repoBook := repoBook.NewBookRepository(r.db)
+	authorsIds, err := repoBook.ReadableAuthors(ctx)
+	if err != nil {
+		return nil, nil
+	}
 
-	rows, err := r.db.Query(query)
+	query, args, _ := sq.Select(
+			"id",
+			"name",
+			"birth_date",
+		).
+		From(authors).
+		Where(sq.Eq{"id": authorsIds}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 
 	defer rows.Close()
 
-	authors := make([]*model.Author, 0)
+	authors := make(map[int]*model.Author, len(authorsIds))
 
 	for rows.Next() {
 		author := new(model.Author)
@@ -103,7 +112,12 @@ func (r *AuthorRepository) AuthorsTop(ctx context.Context) ([]*model.Author, err
 			return nil, err
 		}
 
-		authors = append(authors, author)
+		author.Books, err = repoBook.ListByAuthor(ctx, author.ID)
+		if err != nil {
+			return nil, err // authors, err
+		}
+
+		authors[author.ID] = author
 	}
 
 	// убеждаемся, что прошлись по всему набору строк без ошибок
@@ -111,25 +125,38 @@ func (r *AuthorRepository) AuthorsTop(ctx context.Context) ([]*model.Author, err
 		return nil, err
 	}
 
-	return authors, nil
+	authorsTop := make([]*model.Author, len(authorsIds))
+	for i, authorId := range authorsIds {
+		authorsTop[i] = authors[authorId]
+	}
+
+	return authorsTop, nil
 }
 
-func (r *AuthorRepository) AddAuthor(ctx context.Context, name, birthDate string) error {
+func (r *AuthorRepository) Add(ctx context.Context, author model.Author) error {
 	var authorId int
 	query, args, _ := sq.Insert(authors).
 		Columns(
 			"name",
 			"birth_date",
 		).Values(
-		name,
-		birthDate,
-	).Suffix(
-		"RETURNING id",
-	).PlaceholderFormat(sq.Dollar).ToSql()
+			author.Name,
+			author.BirthDate,
+		).Suffix(
+			"ON CONFLICT (name) DO UPDATE SET name = ? RETURNING id", 
+			author.Name,
+		).PlaceholderFormat(sq.Dollar).ToSql()
 
 	row := r.db.QueryRowContext(ctx, query, args...)
 	if err := row.Scan(&authorId); err != nil {
 		return err
+	}
+
+	
+	repoBook := repoBook.NewBookRepository(r.db)
+	for _, book := range author.Books {
+		book.AuthorID = authorId
+		repoBook.Add(ctx, *book)
 	}
 
 	return nil

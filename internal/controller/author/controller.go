@@ -9,9 +9,9 @@ import (
 )
 
 type Authorer interface {
-	Add(w http.ResponseWriter, r *http.Request)
 	Top(w http.ResponseWriter, r *http.Request)
 	List(w http.ResponseWriter, r *http.Request)
+	Add(w http.ResponseWriter, r *http.Request)
 }
 
 type Author struct {
@@ -25,18 +25,18 @@ func NewAuthor(service service.Authorer) Authorer {
 }
 
 func (a *Author) Top(w http.ResponseWriter, r *http.Request) {
-	authors, err := a.service.AuthorsTop(r.Context())
+	authors, err := a.service.Top(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(authors)
 }
 
 func (a *Author) List(w http.ResponseWriter, r *http.Request) {
-	authors, err := a.service.AuthorsList(r.Context())
+	authors, err := a.service.List(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -55,7 +55,7 @@ func (a *Author) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = a.service.AddAuthor(r.Context(), author)
+	err = a.service.Add(r.Context(), author)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -10,23 +10,23 @@ import (
 )
 
 type Booker interface {
-	BookTake(ctx context.Context, userId, bookId int) (*model.Book, error)
-	BookReturn(ctx context.Context, userId, bookId int) (*model.Book, error)
-	BooksList(ctx context.Context) ([]*model.Book, error)
-	BookAdd(ctx context.Context, book model.Book) error
+	Take(ctx context.Context, userId, bookId int) (*model.Book, error)
+	Return(ctx context.Context, userId, bookId int) (*model.Book, error)
+	List(ctx context.Context) ([]*model.Book, error)
+	Add(ctx context.Context, book model.Book) error
 }
 
 type BookService struct {
 	logger *zap.Logger
-	repo repo.BookerRepository
+	repo repo.Booker
 }
 
-func NewBookService(repo repo.BookerRepository, logger *zap.Logger) *BookService {
+func NewBookService(repo repo.Booker, logger *zap.Logger) *BookService {
 	return &BookService{repo: repo, logger: logger}
 }
 
-func (bs *BookService) BookTake(ctx context.Context, userId, bookId int) (*model.Book, error) {
-	book, err := bs.repo.BookTake(ctx, userId, bookId)
+func (bs *BookService) Take(ctx context.Context, userId, bookId int) (*model.Book, error) {
+	book, err := bs.repo.Take(ctx, userId, bookId)
 	if err != nil {
 		bs.logger.Error("error book take", zap.Error(err))
 		return nil, err
@@ -34,8 +34,8 @@ func (bs *BookService) BookTake(ctx context.Context, userId, bookId int) (*model
 	return book, nil
 }
 
-func (bs *BookService) BookReturn(ctx context.Context, userId, bookId int) (*model.Book, error) {
-	book, err := bs.repo.BookReturn(ctx, userId, bookId)
+func (bs *BookService) Return(ctx context.Context, userId, bookId int) (*model.Book, error) {
+	book, err := bs.repo.Return(ctx, userId, bookId)
 	if err != nil {
 		bs.logger.Error("error book return", zap.Error(err))
 		return nil, err
@@ -43,8 +43,8 @@ func (bs *BookService) BookReturn(ctx context.Context, userId, bookId int) (*mod
 	return book, nil
 }
 
-func (bs *BookService) BooksList(ctx context.Context) ([]*model.Book, error) {
-	books, err := bs.repo.BooksList(ctx)
+func (bs *BookService) List(ctx context.Context) ([]*model.Book, error) {
+	books, err := bs.repo.List(ctx)
 	if err != nil {
 		bs.logger.Error("error books list", zap.Error(err))
 		return nil, err
@@ -52,8 +52,8 @@ func (bs *BookService) BooksList(ctx context.Context) ([]*model.Book, error) {
 	return books, nil
 }
 
-func (bs *BookService) BookAdd(ctx context.Context, book model.Book) error {
-	if err := bs.repo.BookAdd(ctx, book); err != nil {
+func (bs *BookService) Add(ctx context.Context, book model.Book) error {
+	if err := bs.repo.Add(ctx, book); err != nil {
 		bs.logger.Error("error book add", zap.Error(err))
 		return err
 	}

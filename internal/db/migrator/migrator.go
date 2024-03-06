@@ -14,7 +14,8 @@ func CreateAuthors(db *sqlx.DB) error {
 	query := `CREATE TABLE public.authors (
 		id serial PRIMARY KEY,
 		name VARCHAR NOT NULL,
-		birth_date VARCHAR(10) NOT NULL
+		birth_date VARCHAR(10) NOT NULL,
+		CONSTRAINT name_key UNIQUE (name)
 	);`
 
 	if _, err := db.Exec(query); err != nil {

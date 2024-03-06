@@ -20,9 +20,35 @@
   "host": "localhost:8080",
   "basePath": "/",
   "paths": {
+    "/library/author": {
+      "post": {
+        "description": "Добавить автора",
+        "tags": [
+          "author"
+        ],
+        "operationId": "AuthorAdd",
+        "parameters": [
+          {
+            "name": "Author",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Author"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Автор успешно добавлен",
+            "schema": {
+              "$ref": "#/definitions/Author"
+            }
+          }
+        }
+      }
+    },
     "/library/authors": {
       "get": {
-        "description": "Получение списка авторов",
+        "description": "Список авторов",
         "tags": [
           "author"
         ],
@@ -37,6 +63,40 @@
         }
       }
     },
+    "/library/books": {
+      "get": {
+        "description": "Список книг",
+        "tags": [
+          "book"
+        ],
+        "operationId": "BooksList",
+        "responses": {
+          "200": {
+            "description": "Список книг успешно получен",
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          }
+        }
+      }
+    },
+    "/library/popular-authors": {
+      "get": {
+        "description": "Список популярных авторов",
+        "tags": [
+          "author"
+        ],
+        "operationId": "AuthorsTop",
+        "responses": {
+          "200": {
+            "description": "Cписок популярных авторов успешно получен",
+            "schema": {
+              "$ref": "#/definitions/Author"
+            }
+          }
+        }
+      }
+    },
     "/library/return/{bookId}/{userId}": {
       "put": {
         "description": "Сдать книгу",
@@ -44,24 +104,6 @@
           "book"
         ],
         "operationId": "BookReturn",
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "x-go-name": "BookId",
-            "name": "bookId",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "format": "int64",
-            "x-go-name": "UserId",
-            "name": "userId",
-            "in": "path",
-            "required": true
-          }
-        ],
         "responses": {
           "200": {
             "description": "Книга успешно сдана",
@@ -79,24 +121,6 @@
           "book"
         ],
         "operationId": "BookTake",
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "x-go-name": "BookId",
-            "name": "bookId",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "format": "int64",
-            "x-go-name": "UserId",
-            "name": "userId",
-            "in": "path",
-            "required": true
-          }
-        ],
         "responses": {
           "200": {
             "description": "Книга успешно получена",
@@ -129,11 +153,13 @@
     "Author": {
       "type": "object",
       "properties": {
-        "birth_date": {
+        "birthDate": {
+          "description": "in:body",
           "type": "string",
           "x-go-name": "BirthDate"
         },
         "books": {
+          "description": "in:body",
           "type": "array",
           "items": {
             "$ref": "#/definitions/Book"
@@ -147,23 +173,31 @@
           "x-go-name": "ID"
         },
         "name": {
+          "description": "in:body",
           "type": "string",
           "x-go-name": "Name"
         }
+      },
+      "x-go-package": "golibrary/internal/model"
+    },
+    "AuthorAdd": {
+      "type": "object",
+      "x-go-package": "golibrary/docs"
+    },
+    "Authors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Author"
       },
       "x-go-package": "golibrary/docs"
     },
     "Book": {
       "type": "object",
       "properties": {
-        "author_id": {
+        "authorId": {
           "type": "integer",
           "format": "int64",
           "x-go-name": "AuthorID"
-        },
-        "available": {
-          "type": "boolean",
-          "x-go-name": "Available"
         },
         "id": {
           "description": "in:body",
@@ -175,7 +209,7 @@
           "type": "string",
           "x-go-name": "Title"
         },
-        "user_id": {
+        "userId": {
           "type": "integer",
           "format": "int64",
           "x-go-name": "UserID"
@@ -183,6 +217,13 @@
       },
       "x-go-name": "BookReturn",
       "x-go-package": "golibrary/internal/model"
+    },
+    "Books": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Book"
+      },
+      "x-go-package": "golibrary/docs"
     },
     "User": {
       "type": "object",
