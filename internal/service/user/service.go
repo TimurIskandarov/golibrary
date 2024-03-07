@@ -11,7 +11,7 @@ import (
 
 type Userer interface {
 	List(ctx context.Context) ([]*model.User, error)
-	Add(ctx context.Context, book model.User) error
+	Add(ctx context.Context, book model.User) (int, error)
 }
 
 type UserService struct {
@@ -32,10 +32,11 @@ func (us *UserService) List(ctx context.Context) ([]*model.User, error) {
 	return books, nil
 }
 
-func (us *UserService) Add(ctx context.Context, user model.User) error {
-	if err := us.repo.Add(ctx, user); err != nil {
+func (us *UserService) Add(ctx context.Context, user model.User) (int, error) {
+	userId, err := us.repo.Add(ctx, user)
+	if err != nil {
 		us.logger.Error("error user add", zap.Error(err))
-		return err
+		return 0, err
 	}
-	return nil
+	return userId, nil
 }

@@ -20,7 +20,7 @@ type Booker interface {
 	Take(ctx context.Context, userId, bookId int) (*model.Book, error)
 	Return(ctx context.Context, userId, bookId int) (*model.Book, error)
 	List(ctx context.Context) ([]*model.Book, error)
-	Add(ctx context.Context, book model.Book) error
+	Add(ctx context.Context, book model.Book) (int, error)
 	ListByAuthor(ctx context.Context, authorId int) ([]*model.Book, error)
 	ListByUser(ctx context.Context, authorId int) ([]*model.Book, error)
 	ReadableAuthors(ctx context.Context) ([]int, error)
@@ -209,37 +209,61 @@ func (r *BookRepository) List(ctx context.Context) ([]*model.Book, error) {
 	return books, nil
 }
 
-func (r *BookRepository) Add(ctx context.Context, book model.Book) error {
-	// TODO: исправить метод добавления книги
-	// если мы добавили нового автора
-	// то условие author_id="новый_автор"
-	// никогда не выполнится
-	var bookId int
+func (r *BookRepository) Add(ctx context.Context, book model.Book) (int, error) {
+	var authorId int
 	query, args, _ := sq.Select("id").
+		From("authors").
+		Where("id=?", book.AuthorID).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+
+	row := r.db.QueryRowContext(ctx, query, args...)
+	if err := row.Scan(&authorId); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, errors.New("такого автора не существует")
+		}
+	}
+
+	// поиск книги по автору и названию
+	var bookId int
+	query, args, _ = sq.Select("id").
 		From(books).
 		Where("title=?", book.Title).
 		Where("author_id=?", book.AuthorID).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
-	row := r.db.QueryRowContext(ctx, query, args...)
+	row = r.db.QueryRowContext(ctx, query, args...)
 	if err := row.Scan(&bookId); err != nil {
-		return err
-	}
-
-	if bookId == 0 {
-		query, args, _ := sq.Update(books).
-			Set("title", book.Title).
-			Set("author_id", book.AuthorID).
-			PlaceholderFormat(sq.Dollar).
-			ToSql()
-
-		if _, err := r.db.ExecContext(ctx, query, args...); err != nil {
-			return err
+		if err != sql.ErrNoRows {
+			return 0, err
 		}
 	}
 
-	return nil
+	// если книги данного автора нет, то добавляем её
+	if bookId == 0 {
+		query, args, _ = sq.Insert(books).
+			Columns(
+				"title",
+				"author_id",
+			).
+			Values(
+				book.Title,
+				book.AuthorID,
+			).
+			Suffix("RETURNING id").
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+
+		row := r.db.QueryRowContext(ctx, query, args...)
+		if err := row.Scan(&bookId); err != nil {
+			return 0, err
+		}
+	} else {
+		return 0, errors.New("такая книга уже есть")
+	}
+
+	return bookId, nil
 }
 
 func (r *BookRepository) ListByAuthor(ctx context.Context, authorId int) ([]*model.Book, error) {

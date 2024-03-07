@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	service "golibrary/internal/service/book"
+	"golibrary/internal/model"
+	"golibrary/internal/service/book"
 
 	"github.com/go-chi/chi"
 )
@@ -101,5 +102,20 @@ func (b *Book) List(w http.ResponseWriter, r *http.Request) {
 
 // Add implements Booker.
 func (b *Book) Add(w http.ResponseWriter, r *http.Request) {
-	panic("unimplemented")
+	var book model.Book
+
+	err := json.NewDecoder(r.Body).Decode(&book)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	book.ID, err = b.service.Add(r.Context(), book)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(book)
 }

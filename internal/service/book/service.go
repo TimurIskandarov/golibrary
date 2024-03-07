@@ -13,7 +13,7 @@ type Booker interface {
 	Take(ctx context.Context, userId, bookId int) (*model.Book, error)
 	Return(ctx context.Context, userId, bookId int) (*model.Book, error)
 	List(ctx context.Context) ([]*model.Book, error)
-	Add(ctx context.Context, book model.Book) error
+	Add(ctx context.Context, book model.Book) (int, error)
 }
 
 type BookService struct {
@@ -52,10 +52,11 @@ func (bs *BookService) List(ctx context.Context) ([]*model.Book, error) {
 	return books, nil
 }
 
-func (bs *BookService) Add(ctx context.Context, book model.Book) error {
-	if err := bs.repo.Add(ctx, book); err != nil {
+func (bs *BookService) Add(ctx context.Context, book model.Book) (int, error) {
+	bookId, err := bs.repo.Add(ctx, book)
+	if err != nil {
 		bs.logger.Error("error book add", zap.Error(err))
-		return err
+		return 0, err
 	}
-	return nil
+	return bookId, nil
 }

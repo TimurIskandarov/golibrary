@@ -49,7 +49,6 @@ func (r *AuthorRepository) List(ctx context.Context) ([]*model.Author, error) {
 
 	for rows.Next() {
 		author := new(model.Author)
-
 		if err = rows.Scan(
 			&author.ID,
 			&author.Name,
@@ -139,20 +138,23 @@ func (r *AuthorRepository) Add(ctx context.Context, author model.Author) error {
 		Columns(
 			"name",
 			"birth_date",
-		).Values(
+		).
+		Values(
 			author.Name,
 			author.BirthDate,
-		).Suffix(
+		).
+		Suffix(
 			"ON CONFLICT (name) DO UPDATE SET name = ? RETURNING id", 
 			author.Name,
-		).PlaceholderFormat(sq.Dollar).ToSql()
+		).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
 
 	row := r.db.QueryRowContext(ctx, query, args...)
 	if err := row.Scan(&authorId); err != nil {
 		return err
 	}
 
-	
 	repoBook := repoBook.NewBookRepository(r.db)
 	for _, book := range author.Books {
 		book.AuthorID = authorId

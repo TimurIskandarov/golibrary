@@ -7,7 +7,6 @@ func CreateTables(db *sqlx.DB) {
 	CreateAuthors(db)
 	CreateBooks(db)
 	CreateUsers(db)
-	CreateHistory(db)
 }
 
 func CreateAuthors(db *sqlx.DB) error {
@@ -45,21 +44,8 @@ func CreateUsers(db *sqlx.DB) error {
 	query := `CREATE TABLE public.users (
 		id serial PRIMARY KEY,
 		name VARCHAR,
-		email VARCHAR
-	);`
-
-	if _, err := db.Exec(query); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func CreateHistory(db *sqlx.DB) error {
-	query := `CREATE TABLE public.history (
-		user_id INT REFERENCES users(id) ON DELETE CASCADE,
-		book_id INT REFERENCES books(id) ON DELETE CASCADE,
-		PRIMARY KEY (user_id, book_id)
+		email VARCHAR,
+		CONSTRAINT email_key UNIQUE (email)
 	);`
 
 	if _, err := db.Exec(query); err != nil {

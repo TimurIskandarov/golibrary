@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	service "golibrary/internal/service/user"
+	"golibrary/internal/model"
+	"golibrary/internal/service/user"
 )
 
 type Userer interface {
@@ -22,11 +23,6 @@ func NewUser(service service.Userer) Userer {
 	}
 }
 
-// Add implements Userer.
-func (u *User) Add(w http.ResponseWriter, r *http.Request) {
-	panic("unimplemented")
-}
-
 // List implements Userer.
 func (u *User) List(w http.ResponseWriter, r *http.Request) {
 	users, err := u.service.List(r.Context())
@@ -37,4 +33,24 @@ func (u *User) List(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(users)
+}
+
+// Add implements Userer.
+func (u *User) Add(w http.ResponseWriter, r *http.Request) {
+	var user model.User
+
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	user.ID, err = u.service.Add(r.Context(), user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
 }

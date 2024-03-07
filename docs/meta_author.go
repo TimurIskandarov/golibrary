@@ -13,13 +13,9 @@ import "golibrary/internal/model"
 
 // swagger:model Author
 type Author struct {
-	// in:body
 	ID        int           `json:"id"`
-	// in:body
 	Name      string        `json:"name"`
-	// in:body
 	BirthDate string        `json:"birthDate"`
-	// in:body
 	Books     []*model.Book `json:"books"`
 }
 
@@ -30,9 +26,7 @@ type Author struct {
 // responses:
 // 	 200: body:Author Cписок популярных авторов успешно получен
 
-// swagger:parameters AuthorsTop
-
-// swagger:model Authors
+// swagger:model
 type Authors []model.Author
 
 // swagger:route POST /library/author author AuthorAdd
@@ -42,11 +36,5 @@ type Authors []model.Author
 // responses:
 // 	 200: body:Author Автор успешно добавлен
 
-// swagger:parameters AuthorAdd
-type _ struct {
-	//in:body
-	Author Author
-}
-
-// swagger:model
-type AuthorAdd struct {}
+// swagger:model Author
+type AuthorAdd struct{}

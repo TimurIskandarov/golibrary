@@ -27,5 +27,3 @@
 //
 // swagger:meta
 package docs
-
-//go:generate `swagger generate spec -o ./public/swagger.json --scan-models`
