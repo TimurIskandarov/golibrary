@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"golibrary/internal/model"
-	"golibrary/internal/service/book"
+	"golibrary/internal/book/service"
 
 	"github.com/go-chi/chi"
 )

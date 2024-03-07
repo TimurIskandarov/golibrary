@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"golibrary/internal/model"
-	"golibrary/internal/service/user"
+	"golibrary/internal/user/service"
 )
 
 type Userer interface {

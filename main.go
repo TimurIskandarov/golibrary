@@ -13,15 +13,71 @@ import (
 
 	"golibrary/config"
 	"golibrary/docs"
-	"golibrary/internal/controller"
 	"golibrary/internal/db"
 	"golibrary/internal/logger"
-	"golibrary/internal/repository"
-	"golibrary/internal/service"
+
+	author "golibrary/internal/author/repository"
+	book "golibrary/internal/book/repository"
+	user "golibrary/internal/user/repository"
+
+	aservice "golibrary/internal/author/service"
+	bservice "golibrary/internal/book/service"
+	uservice "golibrary/internal/user/service"	
+	
+	acontroller "golibrary/internal/author/controller"
+	bcontroller "golibrary/internal/book/controller"
+	ucontroller "golibrary/internal/user/controller"
 
 	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
+
+type Repos struct {
+	Author author.Authorer
+	Book   book.Booker
+	User   user.Userer
+}
+
+func NewRepositories(db *sqlx.DB) *Repos {
+	return &Repos{
+		Author: author.NewAuthorRepository(db),
+		Book:   book.NewBookRepository(db),
+		User:   user.NewUserRepository(db),
+	}
+}
+
+type Services struct {
+	Author aservice.Authorer
+	Book   bservice.Booker
+	User   uservice.Userer
+}
+
+func NewServices(repos *Repos, logger *zap.Logger) *Services {
+	return &Services{
+		Author: aservice.NewAuthorService(repos.Author, logger),
+		Book:   bservice.NewBookService(repos.Book, logger),
+		User:   uservice.NewUserService(repos.User, logger),
+	}
+}
+
+type Controllers struct {
+	Author acontroller.Authorer
+	Book   bcontroller.Booker
+	User   ucontroller.Userer
+}
+
+func NewControllers(services *Services) *Controllers{
+	authorController := acontroller.NewAuthor(services.Author)
+	bookController := bcontroller.NewBook(services.Book)
+	userController := ucontroller.NewUser(services.User)
+
+	return &Controllers{
+		Author: authorController,
+		Book:   bookController,
+		User:   userController,
+	}
+}
 
 func main() {
 	// Создание конфигурации приложения
@@ -38,13 +94,13 @@ func main() {
 	}
 
 	// Создание репозиториев
-	repos := repo.NewRepositories(dbx)
+	repos := NewRepositories(dbx)
 
 	// Создание сервисов
-	services := service.NewServices(repos, logger)
+	services := NewServices(repos, logger)
 
 	// Создание контроллеров
-	controllers := controller.NewControllers(services)
+	controllers := NewControllers(services)
 
 	r := chi.NewRouter()
 

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"golibrary/internal/model"
-	repoBook "golibrary/internal/repository/book"
+	repoBook "golibrary/internal/book/repository"
 
 	"github.com/jmoiron/sqlx"
 

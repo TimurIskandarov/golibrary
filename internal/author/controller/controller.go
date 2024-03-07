@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"golibrary/internal/model"
-	"golibrary/internal/service/author"
+	"golibrary/internal/author/service"
 )
 
 type Authorer interface {
