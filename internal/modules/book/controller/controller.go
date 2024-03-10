@@ -5,26 +5,32 @@ import (
 	"net/http"
 	"strconv"
 
+	"golibrary/internal/modules/book/repository"
+	"golibrary/internal/modules/book/service"
 	"golibrary/internal/model"
-	"golibrary/internal/book/service"
 
 	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
 )
 
 type Booker interface {
-	Add(w http.ResponseWriter, r *http.Request)
-	List(w http.ResponseWriter, r *http.Request)
 	Take(w http.ResponseWriter, r *http.Request)
 	Return(w http.ResponseWriter, r *http.Request)
+	List(w http.ResponseWriter, r *http.Request)
+	Add(w http.ResponseWriter, r *http.Request)
 }
 
 type Book struct {
 	service service.Booker
 }
 
-func NewBook(service service.Booker) Booker {
+func NewBook(db *sqlx.DB, logger *zap.Logger) Booker {
 	return &Book{
-		service: service,
+		service: service.NewBookService(
+			repo.NewBookRepository(db),
+			logger,
+		),
 	}
 }
 

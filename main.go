@@ -14,70 +14,18 @@ import (
 	"golibrary/config"
 	"golibrary/docs"
 	"golibrary/internal/db"
+	"golibrary/internal/facade"
 	"golibrary/internal/logger"
+	"golibrary/internal/superservice"
 
-	author "golibrary/internal/author/repository"
-	book "golibrary/internal/book/repository"
-	user "golibrary/internal/user/repository"
-
-	aservice "golibrary/internal/author/service"
-	bservice "golibrary/internal/book/service"
-	uservice "golibrary/internal/user/service"	
-	
-	acontroller "golibrary/internal/author/controller"
-	bcontroller "golibrary/internal/book/controller"
-	ucontroller "golibrary/internal/user/controller"
+	author "golibrary/internal/modules/author/controller"
+	book "golibrary/internal/modules/book/controller"
+	user "golibrary/internal/modules/user/controller"
 
 	"github.com/go-chi/chi"
-	"github.com/jmoiron/sqlx"
+
 	"go.uber.org/zap"
 )
-
-type Repos struct {
-	Author author.Authorer
-	Book   book.Booker
-	User   user.Userer
-}
-
-func NewRepositories(db *sqlx.DB) *Repos {
-	return &Repos{
-		Author: author.NewAuthorRepository(db),
-		Book:   book.NewBookRepository(db),
-		User:   user.NewUserRepository(db),
-	}
-}
-
-type Services struct {
-	Author aservice.Authorer
-	Book   bservice.Booker
-	User   uservice.Userer
-}
-
-func NewServices(repos *Repos, logger *zap.Logger) *Services {
-	return &Services{
-		Author: aservice.NewAuthorService(repos.Author, logger),
-		Book:   bservice.NewBookService(repos.Book, logger),
-		User:   uservice.NewUserService(repos.User, logger),
-	}
-}
-
-type Controllers struct {
-	Author acontroller.Authorer
-	Book   bcontroller.Booker
-	User   ucontroller.Userer
-}
-
-func NewControllers(services *Services) *Controllers{
-	authorController := acontroller.NewAuthor(services.Author)
-	bookController := bcontroller.NewBook(services.Book)
-	userController := ucontroller.NewUser(services.User)
-
-	return &Controllers{
-		Author: authorController,
-		Book:   bookController,
-		User:   userController,
-	}
-}
 
 func main() {
 	// Создание конфигурации приложения
@@ -94,13 +42,28 @@ func main() {
 	}
 
 	// Создание репозиториев
-	repos := NewRepositories(dbx)
+	// repos := NewRepositories(dbx)
 
 	// Создание сервисов
-	services := NewServices(repos, logger)
+	// services := NewServices(repos, logger)
 
 	// Создание контроллеров
-	controllers := NewControllers(services)
+	// controllers := NewControllers(services)
+
+	// controllers := NewControllers(
+	// 	NewServices(
+	// 		NewRepositories(dbx),
+	// 		logger,
+	// 	),
+	// )
+
+	superService := &superservice.Service{
+		Author: author.NewAuthor(dbx, logger),
+		Book:   book.NewBook(dbx, logger),
+		User:   user.NewUser(dbx, logger),
+	}
+
+	f := facade.Facade{Service: superService}
 
 	r := chi.NewRouter()
 
@@ -118,20 +81,17 @@ func main() {
 
 	// маршруты library сервиса
 	r.Group(func(r chi.Router) {
-		bookController := controllers.Book
-		r.Put("/library/take/{bookId}/{userId}", bookController.Take)
-		r.Put("/library/return/{bookId}/{userId}", bookController.Return)
-		r.Get("/library/books", bookController.List)
-		r.Post("/library/book", bookController.Add)
+		r.Put("/library/take/{bookId}/{userId}", f.BookTake)
+		r.Put("/library/return/{bookId}/{userId}", f.BookReturn)
+		r.Get("/library/books", f.BookList)
+		r.Post("/library/book", f.BookAdd)
 
-		authorController := controllers.Author
-		r.Get("/library/popular-authors", authorController.Top)
-		r.Get("/library/authors", authorController.List)
-		r.Post("/library/author", authorController.Add)
+		r.Get("/library/popular-authors", f.AuthorsTop)
+		r.Get("/library/authors", f.AuthorsList)
+		r.Post("/library/author", f.AuthorAdd)
 
-		userController := controllers.User
-		r.Get("/library/users", userController.List)
-		r.Post("/library/user", userController.Add)
+		r.Get("/library/users", f.UsersList)
+		r.Post("/library/user", f.AuthorAdd)
 	})
 
 	server := &http.Server{

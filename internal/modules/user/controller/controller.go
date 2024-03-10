@@ -4,8 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"golibrary/internal/modules/user/repository"
+	"golibrary/internal/modules/user/service"
 	"golibrary/internal/model"
-	"golibrary/internal/user/service"
+
+	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
 )
 
 type Userer interface {
@@ -17,9 +21,12 @@ type User struct {
 	service service.Userer
 }
 
-func NewUser(service service.Userer) Userer {
+func NewUser(db *sqlx.DB, logger *zap.Logger) Userer {
 	return &User{
-		service: service,
+		service: service.NewUserService(
+			repo.NewUserRepository(db),
+			logger,
+		),
 	}
 }
 

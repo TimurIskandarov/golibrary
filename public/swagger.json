@@ -52,12 +52,15 @@
         "tags": [
           "author"
         ],
-        "operationId": "Author",
+        "operationId": "AuthorsList",
         "responses": {
           "200": {
             "description": "Cписок авторов успешно получен",
             "schema": {
-              "$ref": "#/definitions/Author"
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Author"
+              }
             }
           }
         }
@@ -96,29 +99,14 @@
           "book"
         ],
         "operationId": "BooksList",
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "x-go-name": "BookId",
-            "name": "bookId",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "format": "int64",
-            "x-go-name": "UserId",
-            "name": "userId",
-            "in": "path",
-            "required": true
-          }
-        ],
         "responses": {
           "200": {
             "description": "Список книг успешно получен",
             "schema": {
-              "$ref": "#/definitions/Book"
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Book"
+              }
             }
           }
         }
@@ -131,20 +119,14 @@
           "author"
         ],
         "operationId": "AuthorsTop",
-        "parameters": [
-          {
-            "name": "Author",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/Author"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Cписок популярных авторов успешно получен",
             "schema": {
-              "$ref": "#/definitions/Author"
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Author"
+              }
             }
           }
         }
@@ -253,20 +235,14 @@
           "user"
         ],
         "operationId": "UsersList",
-        "parameters": [
-          {
-            "name": "User",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/User"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Список читателей успешно получен",
             "schema": {
-              "$ref": "#/definitions/User"
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/User"
+              }
             }
           }
         }
@@ -298,14 +274,6 @@
           "x-go-name": "Name"
         }
       },
-      "x-go-name": "AuthorAdd",
-      "x-go-package": "golibrary/internal/model"
-    },
-    "Authors": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Author"
-      },
       "x-go-package": "golibrary/docs"
     },
     "Book": {
@@ -331,15 +299,7 @@
           "x-go-name": "UserID"
         }
       },
-      "x-go-name": "BookReturn",
       "x-go-package": "golibrary/internal/model"
-    },
-    "Books": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Book"
-      },
-      "x-go-package": "golibrary/docs"
     },
     "User": {
       "type": "object",
@@ -356,7 +316,6 @@
           "x-go-name": "Email"
         },
         "id": {
-          "description": "in:body",
           "type": "integer",
           "format": "int64",
           "x-go-name": "ID"
@@ -366,7 +325,6 @@
           "x-go-name": "Name"
         }
       },
-      "x-go-name": "UsersList",
       "x-go-package": "golibrary/docs"
     }
   },

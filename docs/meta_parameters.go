@@ -1,6 +1,8 @@
 package docs
 
+// swagger:parameters AuthorsList
 // swagger:parameters AuthorsTop
+
 // swagger:parameters AuthorAdd
 type _ struct {
 	//in:body
@@ -8,13 +10,8 @@ type _ struct {
 }
 
 // swagger:parameters BooksList
+
 // swagger:parameters BookTake
-type _ struct {
-	//in:path
-	BookId int `json:"bookId"`
-	//in:path
-	UserId int `json:"userId"`
-}
 // swagger:parameters BookReturn
 type _ struct {
 	//in:path
@@ -29,6 +26,7 @@ type _ struct {
 }
 
 // swagger:parameters UsersList
+
 // swagger:parameters UserAdd
 type _ struct {
 	// in:body

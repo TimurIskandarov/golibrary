@@ -13,6 +13,8 @@ import (
 )
 
 const (
+	authors = "authors"
+	users = "users"
 	books = "books"
 )
 
@@ -37,7 +39,7 @@ func NewBookRepository(db *sqlx.DB) *BookRepository {
 func (r *BookRepository) Take(ctx context.Context, userId, bookId int) (*model.Book, error) {
 	user := new(model.User)
 	query, args, _ := sq.Select("id").
-		From("users").
+		From(users).
 		Where("id=?", userId).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
@@ -84,7 +86,7 @@ func (r *BookRepository) Take(ctx context.Context, userId, bookId int) (*model.B
 
 	query, args, _ = sq.Update(books).
 		Set("user_id", book.UserID).
-		Where("id = ?", book.ID).
+		Where("id=?", book.ID).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
@@ -98,7 +100,7 @@ func (r *BookRepository) Take(ctx context.Context, userId, bookId int) (*model.B
 func (r *BookRepository) Return(ctx context.Context, userId, bookId int) (*model.Book, error) {
 	user := new(model.User)
 	query, args, _ := sq.Select("id").
-		From("users").
+		From(users).
 		Where("id=?", userId).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
@@ -144,7 +146,7 @@ func (r *BookRepository) Return(ctx context.Context, userId, bookId int) (*model
 
 	query, args, _ = sq.Update(books).
 		Set("user_id", userID).
-		Where("id = ?", bookId).
+		Where("id=?", bookId).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
@@ -212,7 +214,7 @@ func (r *BookRepository) List(ctx context.Context) ([]*model.Book, error) {
 func (r *BookRepository) Add(ctx context.Context, book model.Book) (int, error) {
 	var authorId int
 	query, args, _ := sq.Select("id").
-		From("authors").
+		From(authors).
 		Where("id=?", book.AuthorID).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()

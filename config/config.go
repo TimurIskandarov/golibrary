@@ -48,7 +48,6 @@ func NewAppConf() AppConf {
 			Level: os.Getenv("LOG_LEVEL"),
 		},
 		DB: DB{
-			Net:      os.Getenv("DB_NET"),
 			Driver:   os.Getenv("DB_DRIVER"),
 			Name:     os.Getenv("DB_NAME"),
 			User:     os.Getenv("DB_USER"),

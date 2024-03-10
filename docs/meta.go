@@ -27,3 +27,5 @@
 //
 // swagger:meta
 package docs
+
+// swagger generate spec -o ./public/swagger.json --scan-models

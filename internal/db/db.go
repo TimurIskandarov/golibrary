@@ -41,10 +41,13 @@ func addRandomUsers(db *sqlx.DB) error {
 			Columns(
 				"name",
 				"email",
-			).Values(
-			name,
-			email,
-		).PlaceholderFormat(sq.Dollar).ToSql()
+			).
+			Values(
+				name,
+				email,
+			).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
 
 		_, err := db.Exec(query, args...)
 
@@ -65,12 +68,14 @@ func addAuthors(db *sqlx.DB) error {
 			Columns(
 				"name",
 				"birth_date",
-			).Values(
-			authorName,
-			birthDate,
-		).Suffix(
-			"RETURNING id",
-		).PlaceholderFormat(sq.Dollar).ToSql()
+			).
+			Values(
+				authorName,
+				birthDate,
+			).
+			Suffix("RETURNING id").
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
 
 		row := db.QueryRow(query, args...)
 		err := row.Scan(&authorId)
@@ -98,20 +103,20 @@ func addBooks(db *sqlx.DB, authorId int) error {
 			Columns(
 				"title",
 				"author_id",
-			).Values(
+			).
+			Values(
 				bookTitle,
 				authorId,
-			).Suffix(
-				"RETURNING id",
-			).PlaceholderFormat(sq.Dollar).ToSql()
+			).
+			Suffix("RETURNING id").
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
 
 		row := db.QueryRow(query, args...)
 		err := row.Scan(&bookId)
 		if err != nil {
 			return err
 		}
-
-		// TODO: добавить данные в связь автор_книга
 	}
 
 	return nil

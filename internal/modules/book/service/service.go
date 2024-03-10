@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"golibrary/internal/model"
-	"golibrary/internal/book/repository"
+	"golibrary/internal/modules/book/repository"
 
 	"go.uber.org/zap"
 )

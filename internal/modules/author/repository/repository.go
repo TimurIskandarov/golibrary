@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"golibrary/internal/model"
-	repoBook "golibrary/internal/book/repository"
+	repoBook "golibrary/internal/modules/book/repository"
 
 	"github.com/jmoiron/sqlx"
 
@@ -31,12 +31,13 @@ func NewAuthorRepository(db *sqlx.DB) *AuthorRepository {
 
 func (r *AuthorRepository) List(ctx context.Context) ([]*model.Author, error) {
 	query, _, _ := sq.Select(
-		"id",
-		"name",
-		"birth_date",
-	).From(
-		authors,
-	).PlaceholderFormat(sq.Dollar).ToSql()
+			"id",
+			"name",
+			"birth_date",
+		).
+		From(authors).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
 
 	rows, err := r.db.Query(query)
 	if err != nil {

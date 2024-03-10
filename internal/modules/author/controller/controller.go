@@ -4,8 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"golibrary/internal/modules/author/repository"
+	"golibrary/internal/modules/author/service"
 	"golibrary/internal/model"
-	"golibrary/internal/author/service"
+
+	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
 )
 
 type Authorer interface {
@@ -18,9 +22,12 @@ type Author struct {
 	service service.Authorer
 }
 
-func NewAuthor(service service.Authorer) Authorer {
+func NewAuthor(db *sqlx.DB, logger *zap.Logger) Authorer {
 	return &Author{
-		service: service,
+		service: service.NewAuthorService(
+			repo.NewAuthorRepository(db), 
+			logger,
+		),
 	}
 }
 

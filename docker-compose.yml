@@ -5,8 +5,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-      args:
-        HTTPS_PROXY: ${https_proxy}
+      # args:
+      #   HTTPS_PROXY: ${https_proxy}
     container_name: golib
     env_file: .env
     depends_on:
